@@ -35,6 +35,9 @@ function Ring(size){
   this.osc.amp(0.2);
   this.osc.start();
 
+  this.frequency = 0;
+
+  this.selected = false;
 
   this.display = function(){
     stroke(0);
@@ -44,33 +47,50 @@ function Ring(size){
     ellipse(this.ctr_position.x,this.ctr_position.y,10);
 
     textAlign(CENTER);
-    text(Math.floor(this.theta * 180 / Math.PI)+180, this.center.x, this.center.y);
-    // text(this.theta, this.center.x, this.center.y);
+    text(Math.floor(this.frequency), this.ctr_position.x, this.ctr_position.y-15);
+    // text(Math.floor(this.theta * 180 / Math.PI)+180, this.ctr_position.x, this.ctr_position.y-15);
   }
 
   this.update = function(){
-    //get angle between mouse and center of ring...
-    //(Math.toDegrees( Math.atan2(fromLeft - 360.0, 360.0 - fromTop) ) + 360.0) % 360.0
-    // atan2(y - cy, x - cx)
-    this.theta = Math.atan2(mouseY - this.center.y, mouseX - this.center.x);
+    if(this.selected){
 
-    console.log(this.theta);
+      //get angle between mouse and center of ring...
+      //(Math.toDegrees( Math.atan2(fromLeft - 360.0, 360.0 - fromTop) ) + 360.0) % 360.0
+      // atan2(y - cy, x - cx)
+      this.theta = Math.atan2(mouseY - this.center.y, mouseX - this.center.x);
 
-    this.ctr_position.x = this.radius*cos(this.theta) + this.center.x;
-    this.ctr_position.y = this.radius*sin(this.theta) + this.center.y;
+      // console.log(this.theta);
 
-    //now lets update the oscillator
-    this.osc.freq(Math.floor(this.theta * 180 / Math.PI)+180);
+      this.ctr_position.x = this.radius * cos(this.theta) + this.center.x;
+      this.ctr_position.y = this.radius * sin(this.theta) + this.center.y;
+
+      //now lets update the oscillator
+      // var frequency = Math.floor(this.theta * 180 / Math.PI)+180;
+      this.frequency = ((sin(this.theta)+1)/2)*400;
+
+      this.osc.freq(this.frequency);
+    }
   }
 }
 
 function mouseDragged() {
   for(var i = 0; i < rings.length; i++){
-    if(
-      mouseX < rings[i].ctr_position.x + 10 && mouseX > rings[i].ctr_position.x - 10 &&
-      mouseY < rings[i].ctr_position.y + 10 && mouseY > rings[i].ctr_position.y - 10
-    ){
-      rings[i].update();
+    rings[i].update();
+  }
+}
+
+function mousePressed(){
+  for(var i = 0; i < rings.length; i++){
+    if( mouseX < rings[i].ctr_position.x + 10 && mouseX > rings[i].ctr_position.x - 10 && mouseY < rings[i].ctr_position.y + 10 && mouseY > rings[i].ctr_position.y - 10 ){
+      rings[i].selected = true;
+    }else{
+      rings[i].selected = false;
     }
+  }
+}
+
+function mouseReleased(){
+  for(var i = 0; i < rings.length; i++){
+    rings[i].selected = false;
   }
 }
