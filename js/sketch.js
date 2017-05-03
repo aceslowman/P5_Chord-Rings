@@ -1,24 +1,22 @@
 var rings = [];
-var driver;
 var paused;
+var speed;
 var osc_type = "square";
 
 function setup(){
-  //create our canvas, which will match our window width and height
   createCanvas(window.innerWidth,window.innerHeight);
 
-  //set the ellipseMode so that we position our rings using the CENTER of the ellipse
   ellipseMode(RADIUS);
 
-  for(var i = 0; i < 5; i++){
+  for(var i = 0; i < 3; i++){
     rings.push(new Ring(80*(i+1)));
   }
 
   paused = true;
+  speed  = 4;
 }
 
 function draw(){
-  //clear the screen for each frame
   background(255);
 
   stroke(0);
@@ -38,25 +36,29 @@ function draw(){
 }
 
 function Ring(size){
+  this.selected = false;
+  this.driver = 0;
+
+  //positioning
   this.radius = size;
   this.center = createVector(width/2,height/2);
+  this.ctrl_position = createVector();
+  this.ctrl_position.x = this.radius*cos(this.theta) + this.center.x;
+  this.ctrl_position.y = this.radius*sin(this.theta) + this.center.y;
+
+  //circle
   this.theta  = -Math.PI/2; //-Math.PI to set to 0
-  this.ctr_position = createVector();
-  this.ctr_position.x = this.radius*cos(this.theta) + this.center.x;
-  this.ctr_position.y = this.radius*sin(this.theta) + this.center.y;
+  this.rotation_speed = 10;
+  this.offset = 0;
+
+  //sound
+  this.frequency = 0;
 
   this.osc = new p5.Oscillator();
   this.osc.setType(osc_type);
-  this.osc.freq(0);
+  this.osc.freq(this.frequency);
   this.osc.amp(0.2);
   this.osc.start();
-
-  this.frequency = 0;
-  this.rotation_speed = 10;
-
-  this.selected = false;
-  this.driver = 0;
-  this.offset = 0;
 
   this.display = function(){
     stroke(0);
@@ -69,46 +71,42 @@ function Ring(size){
       fill(255);
     }
 
-    ellipse(this.ctr_position.x,this.ctr_position.y,10);
+    line(this.center.x,this.center.y,this.ctrl_position.x,this.ctrl_position.y);
+
+    ellipse(this.ctrl_position.x,this.ctrl_position.y,10);
     noFill();
 
     textAlign(CENTER);
-    text(Math.floor(this.frequency)+" hz", this.ctr_position.x, this.ctr_position.y-15);
-    text("Θ = "+this.theta.toFixed(2), this.ctr_position.x, this.ctr_position.y+25);
-    // text(Math.floor(this.theta * 180 / Math.PI)+180, this.ctr_position.x, this.ctr_position.y-15);
+    text(Math.floor(this.frequency)+" hz", this.ctrl_position.x, this.ctrl_position.y-15);
+    text("Θ = "+this.theta.toFixed(2), this.ctrl_position.x, this.ctrl_position.y+25);
   }
 
   this.update = function(){
     if(this.selected){
-      //set the control point based on
-      // this.theta = Math.atan2(mouseY - this.center.y, mouseX - this.center.x);
       this.theta = 0;
       this.offset = Math.atan2(mouseY - this.center.y, mouseX - this.center.x);
+      this.radius = getDistance(this.center.x,this.center.y,mouseX,mouseY);
     }else{
-      //the existing theta
-      if(!paused){
-        this.driver++;
-      }
-              this.theta = this.driver/100;
+      if(!paused){ this.driver += speed; }
+      this.theta = this.driver/100;
     }
 
-    this.ctr_position.x = this.radius * cos(this.theta + this.offset) + this.center.x;
-    this.ctr_position.y = this.radius * sin(this.theta + this.offset) + this.center.y;
+    this.ctrl_position.x = this.radius * cos(this.theta + this.offset) + this.center.x;
+    this.ctrl_position.y = this.radius * sin(this.theta + this.offset) + this.center.y;
 
-    this.theta = Math.atan2(this.ctr_position.y - this.center.y, this.ctr_position.x - this.center.x);
+    this.theta = Math.atan2(this.ctrl_position.y - this.center.y, this.ctrl_position.x - this.center.x);
 
-    // convert theta to frequency
-    // this.frequency = (((sin(this.theta)+1)/2)*100)+200;
     this.frequency = (Math.abs(this.theta) * 200);
+
     this.osc.freq(this.frequency);
+    this.osc.amp(this.radius/(width/2));
   }
 }
 
 function mousePressed(){
   for(var i = 0; i < rings.length; i++){
-    if( mouseX < rings[i].ctr_position.x + 10 && mouseX > rings[i].ctr_position.x - 10 && mouseY < rings[i].ctr_position.y + 10 && mouseY > rings[i].ctr_position.y - 10 ){
+    if( mouseX < rings[i].ctrl_position.x + 10 && mouseX > rings[i].ctrl_position.x - 10 && mouseY < rings[i].ctrl_position.y + 10 && mouseY > rings[i].ctrl_position.y - 10 ){
       rings[i].selected = true;
-
     }else{
       rings[i].selected = false;
     }
@@ -125,30 +123,40 @@ function mouseReleased(){
 }
 
 function keyPressed(){
-  if(key == " "){
-    paused = !paused;
+  switch (key) {
+    case " ":
+      paused = !paused;
+      break;
   }
 }
 
 function keyTyped(){
-  if(key == 1){
-    osc_type = "triangle";
-  }else if(key == 2){
-    osc_type = "sine";
-  }else if(key == 3){
-    osc_type = "square";
-  }
-
-  if(key == "0"){
-    for(var i = 0; i < rings.length; i++){
-      rings[i].theta = 0;
-      rings[i].driver = 0;
-      rings[i].offset = 0;
-    }
-  }
-
-  for(var i = 0; i < rings.length; i++){
-    rings[i].osc.setType(osc_type);
+  switch (key) {
+    case "0":
+      rings.map(function(ring){
+        ring.theta  = 0;
+        ring.driver = 0;
+        ring.offset = 0;
+      });
+      break;
+    case "1":
+      osc_type = "triangle";
+      rings.map(function(ring){
+        ring.osc.setType(osc_type);
+      });
+      break;
+    case "2":
+      osc_type = "sine";
+      rings.map(function(ring){
+        ring.osc.setType(osc_type);
+      });
+      break;
+    case "3":
+      osc_type = "square";
+      rings.map(function(ring){
+        ring.osc.setType(osc_type);
+      });
+      break;
   }
 }
 
@@ -181,5 +189,11 @@ function drawInstructions(){
   text("Press 0 to return theta to 0",50,50);
   text("Press Spacebar to pause",50,100);
   text("Press 1,2,3 to cycle oscillators",50,150);
-  textAlign(CENTER);
+  text("R1 Volume: "+rings[0].osc.output.gain.value,50,300);
+}
+
+//MATH UTILITIES
+
+function getDistance(x1,y1,x2,y2){
+  return Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
 }
