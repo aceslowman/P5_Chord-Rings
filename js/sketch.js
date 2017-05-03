@@ -8,7 +8,7 @@ function setup(){
 
   ellipseMode(RADIUS);
 
-  for(var i = 0; i < 3; i++){
+  for(var i = 0; i < 5; i++){
     rings.push(new Ring(80*(i+1)));
   }
 
@@ -20,8 +20,16 @@ function draw(){
   background(255);
 
   stroke(0);
-  line(width/2,height/2,width/2 + (80*rings.length),height/2);
-  text("Θ = 0", width/2 + (80*rings.length) + 30, height/2 + 4);
+
+  var radii = [];
+  rings.map(function(ring){
+    radii.push(ring.radius);
+  });
+
+  console.log(Math.max.apply(null,radii));
+
+  line(width/2,height/2,width/2 + Math.max.apply(null,radii),height/2);
+  text("Θ = 0", width/2 + Math.max.apply(null,radii) + 30, height/2 + 4);
 
 
 
@@ -32,7 +40,6 @@ function draw(){
 
 
   drawInstructions();
-  // drawOscTypes();
 }
 
 function Ring(size){
@@ -52,7 +59,7 @@ function Ring(size){
   this.rotation_speed = 10;
 
   //sound
-  this.frequency = 0;
+  this.frequency = 1;
   this.osc_type = "sine";
 
   this.osc = new p5.Oscillator();
@@ -167,7 +174,6 @@ function keyTyped(){
 }
 
 function drawOscTypes(osc_type,ctrl_position){
-  // translate(width/2,height/2);
   translate(ctrl_position.x,ctrl_position.y);
   fill(255);
 
