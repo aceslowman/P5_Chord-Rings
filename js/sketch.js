@@ -40,6 +40,7 @@ function draw(){
 
 
   drawInstructions();
+  drawAlignmentCompass();
 }
 
 function Ring(size){
@@ -205,6 +206,25 @@ function drawInstructions(){
   text("While holding a control point, press 1,2,3 to cycle types",50,150);
   text("Adjusting the radius of the circle changes volume.",50,200);
   // text("R1 Volume: "+rings[0].osc.output.gain.value,50,300);
+}
+
+function drawAlignmentCompass(){
+  translate(width/2,height/2);
+
+  var compass_size = 150;
+
+  stroke(0,0,0,compass_size);
+  line(0,0,0,compass_size);
+  line(0,0,compass_size,0);
+  line(0,0,0,-compass_size);
+  line(0,0,-compass_size,0);
+
+  rotate(Math.PI/4);
+  line(0,0,0,compass_size);
+  line(0,0,compass_size,0);
+  line(0,0,0,-compass_size);
+  line(0,0,-compass_size,0);
+  stroke(0);
 }
 
 //MATH UTILITIES
