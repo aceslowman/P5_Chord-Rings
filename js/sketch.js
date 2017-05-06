@@ -1,45 +1,39 @@
 var rings = [];
-var paused;
-var speed;
-var osc_type = "square";
+var base_frequency, paused, speed;
+var max_size;
 
 function setup(){
   createCanvas(window.innerWidth,window.innerHeight);
 
   ellipseMode(RADIUS);
 
-  for(var i = 0; i < 5; i++){
-    rings.push(new Ring(80*(i+1)));
-  }
-
   paused = true;
   speed  = 4;
+  base_frequency = 200;
+  max_size = (height/2-15);
+
+  //distribute properly...
+  var number_of_rings = 3;
+  for(var i = 0; i < number_of_rings; i++){
+    rings.push(new Ring((max_size/number_of_rings)*(i+1)));
+  }
+
+  speedRing = new GuiRing(70,70,50);
 }
 
 function draw(){
   background(255);
-
   stroke(0);
-
-  var radii = [];
-  rings.map(function(ring){
-    radii.push(ring.radius);
-  });
-
-  console.log(Math.max.apply(null,radii));
-
-  line(width/2,height/2,width/2 + Math.max.apply(null,radii),height/2);
-  text("Θ = 0", width/2 + Math.max.apply(null,radii) + 30, height/2 + 4);
-
-
 
   for(var i = 0; i < rings.length; i++){
     rings[i].update();
     rings[i].display();
   }
 
+  speedRing.update();
+  speedRing.display();
 
-  drawInstructions();
+  // drawGUI();
   drawAlignmentCompass();
 }
 
@@ -57,9 +51,10 @@ function Ring(size){
   //circle
   this.theta  = -Math.PI/2; //-Math.PI to set to 0
   this.offset = 0;
-  this.rotation_speed = 10;
+  // this.rotation_speed = speed;
 
   //sound
+  this.base_frequency = base_frequency;
   this.frequency = 1;
   this.osc_type = "sine";
 
@@ -74,7 +69,7 @@ function Ring(size){
     noFill();
     ellipse(this.center.x,this.center.y,this.radius);
 
-    if(this.selected){fill(0)}else{fill(255)}
+    if(this.selected){ fill(0) }else{ fill(255) }
 
     line(this.center.x,this.center.y,this.ctrl_position.x,this.ctrl_position.y);
 
@@ -87,12 +82,15 @@ function Ring(size){
   }
 
   this.update = function(){
+    this.center = createVector(width/2,height/2);
+
     if(this.selected){
       this.theta = 0;
       this.offset = Math.atan2(mouseY - this.center.y, mouseX - this.center.x);
       this.radius = getDistance(this.center.x,this.center.y,mouseX,mouseY);
     }else{
-      if(!paused){ this.driver += this.rotation_speed; }
+      // if(!paused){ this.driver += this.rotation_speed; }
+      if(!paused){ this.driver += speed; }
       this.theta = this.driver/100;
     }
 
@@ -101,10 +99,69 @@ function Ring(size){
 
     this.theta = Math.atan2(this.ctrl_position.y - this.center.y, this.ctrl_position.x - this.center.x);
 
-    this.frequency = (Math.abs(this.theta) * 200);
+    var linearRadians = Math.PI + (Math.PI + this.theta);
+
+    if(this.theta < 0){
+      // console.log(map(linearRadians,0,Math.PI*2,0,this.base_frequency));
+      this.frequency = (map(linearRadians,0,Math.PI*2,0,this.base_frequency) + this.base_frequency);
+    }else{
+      // console.log(this.theta);
+      this.frequency = (map(linearRadians,0,Math.PI*2,0,this.base_frequency));
+    }
 
     this.osc.freq(this.frequency);
     this.osc.amp(this.radius/(width/2));
+  }
+}
+
+function GuiRing(x,y,size){
+  //positioning
+  this.radius = size;
+  this.center = createVector(x,y);
+  this.ctrl_position = createVector();
+  this.ctrl_position.x = this.radius * cos(this.theta) + this.center.x;
+  this.ctrl_position.y = this.radius * sin(this.theta) + this.center.y;
+
+  //circle
+  this.theta  = -Math.PI/2;
+  this.offset = 0;
+
+  this.value = 0;
+  this.range = 20;
+
+  this.display = function(){
+    stroke(0);
+    noFill();
+    ellipse(this.center.x,this.center.y,this.radius);
+
+    if(this.selected){ fill(0) }else{ fill(255) }
+
+    // line(this.center.x,this.center.y,this.ctrl_position.x,this.ctrl_position.y);
+
+    drawOscTypes("sine",this.ctrl_position);
+
+    textAlign(CENTER);
+    text(this.value, this.ctrl_position.x, this.ctrl_position.y-15);
+    text("Speed", this.center.x, this.center.y+3);
+  }
+
+  this.update = function(){
+    if(this.selected){
+      this.offset = Math.atan2(mouseY - this.center.y, mouseX - this.center.x);
+    }
+
+    this.ctrl_position.x = this.radius * cos(this.offset) + this.center.x;
+    this.ctrl_position.y = this.radius * sin(this.offset) + this.center.y;
+
+    this.theta = Math.atan2(this.ctrl_position.y - this.center.y, this.ctrl_position.x - this.center.x);
+
+    if(this.theta < 0){
+      this.value = Math.floor((map(this.theta,0,Math.PI*2,0,this.range)+this.range));
+    }else{
+      this.value = Math.floor((map(this.theta,0,Math.PI*2,0,this.range)));
+    }
+
+    speed = this.value;
   }
 }
 
@@ -116,6 +173,12 @@ function mousePressed(){
       rings[i].selected = false;
     }
   }
+
+  if( mouseX < speedRing.ctrl_position.x + 10 && mouseX > speedRing.ctrl_position.x - 10 && mouseY < speedRing.ctrl_position.y + 10 && mouseY > speedRing.ctrl_position.y - 10 ){
+    speedRing.selected = true;
+  }else{
+    speedRing.selected = false;
+  }
 }
 
 function mouseReleased(){
@@ -124,6 +187,10 @@ function mouseReleased(){
       rings[i].driver = 0;
       rings[i].selected = false;
     }
+  }
+
+  if(speedRing.selected){
+    speedRing.selected = false;
   }
 }
 
@@ -199,32 +266,57 @@ function drawOscTypes(osc_type,ctrl_position){
   translate(-ctrl_position.x,-ctrl_position.y);
 }
 
-function drawInstructions(){
+function drawGUI(){
   textAlign(LEFT);
-  text("Press 0 to return theta to 0",50,50);
-  text("Press Spacebar to play/pause",50,100);
-  text("While holding a control point, press 1,2,3 to cycle types",50,150);
-  text("Adjusting the radius of the circle changes volume.",50,200);
-  // text("R1 Volume: "+rings[0].osc.output.gain.value,50,300);
+  translate(50,0);
+  text("Press 0 to return theta to 0",0,50);
+  text("Press Spacebar to play/pause",0,100);
+  text("While holding a control point, press 1,2,3 to cycle types",0,150);
+  text("Adjusting the radius of the circle changes volume.",0,200);
+  text("Speed: "+speed,0,250);
+  text("R1 Volume: "+rings[0].osc.output.gain.value.toFixed(2),0,300);
+  translate(-50,0);
 }
 
 function drawAlignmentCompass(){
   translate(width/2,height/2);
 
-  var compass_size = 150;
+  stroke(0,0,0,60);
+  noFill();
 
-  stroke(0,0,0,compass_size);
-  line(0,0,0,compass_size);
-  line(0,0,compass_size,0);
-  line(0,0,0,-compass_size);
-  line(0,0,-compass_size,0);
+  text("Θ = 0", max_size+15,5);
+
+  //Main Boundary
+  ellipse(0,0,(height/2-15));
+
+  //Alignment Lines
+  line(0,0,0,max_size);
+  line(0,0,max_size,0);
+  line(0,0,0,-max_size);
+  line(0,0,-max_size,0);
 
   rotate(Math.PI/4);
-  line(0,0,0,compass_size);
-  line(0,0,compass_size,0);
-  line(0,0,0,-compass_size);
-  line(0,0,-compass_size,0);
+  line(0,0,0,max_size);
+  line(0,0,max_size,0);
+  line(0,0,0,-max_size);
+  line(0,0,-max_size,0);
+
+  rotate(Math.PI/8);
+  line(0,0,0,max_size*0.75);
+  line(0,0,max_size*0.75,0);
+  line(0,0,0,-max_size*0.75);
+  line(0,0,-max_size*0.75,0);
+
+  rotate(Math.PI/4);
+  line(0,0,0,max_size*0.75);
+  line(0,0,max_size*0.75,0);
+  line(0,0,0,-max_size*0.75);
+  line(0,0,-max_size*0.75,0);
   stroke(0);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }
 
 //MATH UTILITIES
