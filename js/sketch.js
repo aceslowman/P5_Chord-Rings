@@ -2,6 +2,8 @@ var rings = [];
 var base_frequency, paused, speed;
 var max_size;
 
+var speedRing, freqRing;
+
 function setup(){
   createCanvas(window.innerWidth,window.innerHeight);
 
@@ -12,13 +14,14 @@ function setup(){
   base_frequency = 200;
   max_size = (height/2-15);
 
-  //distribute properly...
   var number_of_rings = 3;
+
   for(var i = 0; i < number_of_rings; i++){
     rings.push(new Ring((max_size/number_of_rings)*(i+1)));
   }
 
-  speedRing = new GuiRing(70,70,50);
+  speedRing = new GuiRing(70,70,50,20,"Speed");
+  freqRing = new GuiRing(70,240,50,500,"Freq");
 }
 
 function draw(){
@@ -32,6 +35,11 @@ function draw(){
 
   speedRing.update();
   speedRing.display();
+  speed = speedRing.getValue();
+
+  freqRing.update();
+  freqRing.display();
+  base_frequency = freqRing.getValue();
 
   // drawGUI();
   drawAlignmentCompass();
@@ -49,12 +57,11 @@ function Ring(size){
   this.ctrl_position.y = this.radius*sin(this.theta) + this.center.y;
 
   //circle
-  this.theta  = -Math.PI/2; //-Math.PI to set to 0
+  this.theta  = -Math.PI/2;
   this.offset = 0;
-  // this.rotation_speed = speed;
 
   //sound
-  this.base_frequency = base_frequency;
+  // this.base_frequency = base_frequency;
   this.frequency = 1;
   this.osc_type = "sine";
 
@@ -89,7 +96,6 @@ function Ring(size){
       this.offset = Math.atan2(mouseY - this.center.y, mouseX - this.center.x);
       this.radius = getDistance(this.center.x,this.center.y,mouseX,mouseY);
     }else{
-      // if(!paused){ this.driver += this.rotation_speed; }
       if(!paused){ this.driver += speed; }
       this.theta = this.driver/100;
     }
@@ -102,11 +108,9 @@ function Ring(size){
     var linearRadians = Math.PI + (Math.PI + this.theta);
 
     if(this.theta < 0){
-      // console.log(map(linearRadians,0,Math.PI*2,0,this.base_frequency));
-      this.frequency = (map(linearRadians,0,Math.PI*2,0,this.base_frequency) + this.base_frequency);
+      this.frequency = (map(linearRadians,0,Math.PI*2,0,base_frequency) + base_frequency);
     }else{
-      // console.log(this.theta);
-      this.frequency = (map(linearRadians,0,Math.PI*2,0,this.base_frequency));
+      this.frequency = (map(linearRadians,0,Math.PI*2,0,base_frequency));
     }
 
     this.osc.freq(this.frequency);
@@ -114,7 +118,7 @@ function Ring(size){
   }
 }
 
-function GuiRing(x,y,size){
+function GuiRing(x,y,size,range,name){
   //positioning
   this.radius = size;
   this.center = createVector(x,y);
@@ -127,7 +131,7 @@ function GuiRing(x,y,size){
   this.offset = 0;
 
   this.value = 0;
-  this.range = 20;
+  this.range = range;
 
   this.display = function(){
     stroke(0);
@@ -136,13 +140,15 @@ function GuiRing(x,y,size){
 
     if(this.selected){ fill(0) }else{ fill(255) }
 
-    // line(this.center.x,this.center.y,this.ctrl_position.x,this.ctrl_position.y);
+    stroke(color(0,0,0,30));
+    line(this.center.x,this.center.y,this.ctrl_position.x,this.ctrl_position.y);
+    stroke(0);
 
     drawOscTypes("sine",this.ctrl_position);
 
     textAlign(CENTER);
     text(this.value, this.ctrl_position.x, this.ctrl_position.y-15);
-    text("Speed", this.center.x, this.center.y+3);
+    text(name, this.center.x, this.center.y+3);
   }
 
   this.update = function(){
@@ -160,24 +166,41 @@ function GuiRing(x,y,size){
     }else{
       this.value = Math.floor((map(this.theta,0,Math.PI*2,0,this.range)));
     }
+  }
 
-    speed = this.value;
+  this.getValue = function(){
+    return this.value;
   }
 }
 
 function mousePressed(){
   for(var i = 0; i < rings.length; i++){
-    if( mouseX < rings[i].ctrl_position.x + 10 && mouseX > rings[i].ctrl_position.x - 10 && mouseY < rings[i].ctrl_position.y + 10 && mouseY > rings[i].ctrl_position.y - 10 ){
+    if(  mouseX < rings[i].ctrl_position.x + 10
+      && mouseX > rings[i].ctrl_position.x - 10
+      && mouseY < rings[i].ctrl_position.y + 10
+      && mouseY > rings[i].ctrl_position.y - 10 ){
       rings[i].selected = true;
     }else{
       rings[i].selected = false;
     }
   }
 
-  if( mouseX < speedRing.ctrl_position.x + 10 && mouseX > speedRing.ctrl_position.x - 10 && mouseY < speedRing.ctrl_position.y + 10 && mouseY > speedRing.ctrl_position.y - 10 ){
+  if(  mouseX < speedRing.ctrl_position.x + 10
+    && mouseX > speedRing.ctrl_position.x - 10
+    && mouseY < speedRing.ctrl_position.y + 10
+    && mouseY > speedRing.ctrl_position.y - 10 ){
     speedRing.selected = true;
   }else{
     speedRing.selected = false;
+  }
+
+  if(  mouseX < freqRing.ctrl_position.x + 10
+    && mouseX > freqRing.ctrl_position.x - 10
+    && mouseY < freqRing.ctrl_position.y + 10
+    && mouseY > freqRing.ctrl_position.y - 10 ){
+    freqRing.selected = true;
+  }else{
+    freqRing.selected = false;
   }
 }
 
@@ -191,6 +214,10 @@ function mouseReleased(){
 
   if(speedRing.selected){
     speedRing.selected = false;
+  }
+
+  if(freqRing.selected){
+    freqRing.selected = false;
   }
 }
 
