@@ -1,3 +1,92 @@
+var midi_pitch;
+var context = new AudioContext(),
+    oscillators = {};
+
+if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess()
+        .then(success, failure);
+}
+
+function success (midi) {
+    var inputs = midi.inputs.values();
+    // inputs is an Iterator
+
+    for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+        // each time there is a midi message call the onMIDIMessage function
+        input.value.onmidimessage = onMIDIMessage;
+    }
+}
+
+function failure () {
+    console.error('No access to your midi devices.')
+}
+
+function onMIDIMessage (message) {
+    var frequency = midiNoteToFrequency(message.data[1]);
+    midi_pitch = message.data[1];
+
+    if (message.data[0] === 144 && message.data[2] > 0) {
+        playNote(frequency);
+    }
+
+    if (message.data[0] === 128 || message.data[2] === 0) {
+        stopNote(frequency);
+    }
+}
+
+function midiNoteToFrequency (note) {
+    return Math.pow(2, ((note - 69) / 12)) * 440;
+}
+
+var context = new AudioContext(),
+    oscillators = {};
+
+if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess()
+        .then(success, failure);
+}
+
+function success (midi) {
+    var inputs = midi.inputs.values();
+    // inputs is an Iterator
+
+    for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+        // each time there is a midi message call the onMIDIMessage function
+        input.value.onmidimessage = onMIDIMessage;
+    }
+}
+
+function failure () {
+    console.error('No access to your midi devices.')
+}
+
+function onMIDIMessage (message) {
+    var frequency = midiNoteToFrequency(message.data[1]);
+
+    if (message.data[0] === 144 && message.data[2] > 0) {
+        playNote(frequency);
+    }
+
+    if (message.data[0] === 128 || message.data[2] === 0) {
+        stopNote(frequency);
+    }
+}
+
+function midiNoteToFrequency (note) {
+    return Math.pow(2, ((note - 69) / 12)) * 440;
+}
+
+function playNote (frequency) {
+  midi_pitch = frequency;
+  console.log(frequency);
+}
+
+function stopNote (frequency) {
+  console.log("Note off");
+}
+
+//***********************************************
+
 var rings = [];
 var base_frequency, paused, speed;
 var max_size;
@@ -25,6 +114,7 @@ function setup(){
 }
 
 function draw(){
+  base_frequency = midi_pitch;
   background(255);
   stroke(0);
 
@@ -61,7 +151,6 @@ function Ring(size){
   this.offset = 0;
 
   //sound
-  // this.base_frequency = base_frequency;
   this.frequency = 1;
   this.osc_type = "sine";
 
@@ -75,6 +164,9 @@ function Ring(size){
     stroke(0);
     noFill();
     ellipse(this.center.x,this.center.y,this.radius);
+    strokeWeight(3);
+    point(this.center.x,this.center.y);
+    strokeWeight(1);
 
     if(this.selected){ fill(0) }else{ fill(255) }
 
@@ -120,13 +212,13 @@ function Ring(size){
 
 function GuiRing(name,x,y,radius,range,def){
   //positioning
-  this.radius = radius;
   this.center = createVector(x,y);
   this.ctrl_position = createVector();
   this.ctrl_position.x = this.radius * cos(this.theta) + this.center.x;
   this.ctrl_position.y = this.radius * sin(this.theta) + this.center.y;
 
   //circle
+  this.radius = radius;
   this.theta  = -Math.PI/2;
   this.offset = 0;
 
@@ -351,6 +443,6 @@ function windowResized() {
 function getDistance(x1,y1,x2,y2){
   return Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
 }
-
-document.addEventListener('touchstart', touchstartHandler, {passive: false });
-document.addEventListener('touchmove', touchmoveHandler, {passive: false });
+//
+// document.addEventListener('touchstart', touchstartHandler, {passive: false });
+// document.addEventListener('touchmove', touchmoveHandler, {passive: false });
