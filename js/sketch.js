@@ -14,14 +14,14 @@ function setup(){
   base_frequency = 200;
   max_size = (height/2-15);
 
-  var number_of_rings = 3;
+  var number_of_rings = 6;
 
   for(var i = 0; i < number_of_rings; i++){
     rings.push(new Ring((max_size/number_of_rings)*(i+1)));
   }
 
-  speedRing = new GuiRing(70,70,50,20,"Speed");
-  freqRing = new GuiRing(70,240,50,500,"Freq");
+  speedRing = new GuiRing("Speed",70,70,50,20,20);
+  freqRing = new GuiRing("Freq",70,240,50,500,200);
 }
 
 function draw(){
@@ -118,9 +118,9 @@ function Ring(size){
   }
 }
 
-function GuiRing(x,y,size,range,name){
+function GuiRing(name,x,y,radius,range,def){
   //positioning
-  this.radius = size;
+  this.radius = radius;
   this.center = createVector(x,y);
   this.ctrl_position = createVector();
   this.ctrl_position.x = this.radius * cos(this.theta) + this.center.x;
