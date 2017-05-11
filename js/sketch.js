@@ -1,92 +1,3 @@
-var midi_pitch;
-var context = new AudioContext(),
-    oscillators = {};
-
-if (navigator.requestMIDIAccess) {
-    navigator.requestMIDIAccess()
-        .then(success, failure);
-}
-
-function success (midi) {
-    var inputs = midi.inputs.values();
-    // inputs is an Iterator
-
-    for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
-        // each time there is a midi message call the onMIDIMessage function
-        input.value.onmidimessage = onMIDIMessage;
-    }
-}
-
-function failure () {
-    console.error('No access to your midi devices.')
-}
-
-function onMIDIMessage (message) {
-    var frequency = midiNoteToFrequency(message.data[1]);
-    midi_pitch = message.data[1];
-
-    if (message.data[0] === 144 && message.data[2] > 0) {
-        playNote(frequency);
-    }
-
-    if (message.data[0] === 128 || message.data[2] === 0) {
-        stopNote(frequency);
-    }
-}
-
-function midiNoteToFrequency (note) {
-    return Math.pow(2, ((note - 69) / 12)) * 440;
-}
-
-var context = new AudioContext(),
-    oscillators = {};
-
-if (navigator.requestMIDIAccess) {
-    navigator.requestMIDIAccess()
-        .then(success, failure);
-}
-
-function success (midi) {
-    var inputs = midi.inputs.values();
-    // inputs is an Iterator
-
-    for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
-        // each time there is a midi message call the onMIDIMessage function
-        input.value.onmidimessage = onMIDIMessage;
-    }
-}
-
-function failure () {
-    console.error('No access to your midi devices.')
-}
-
-function onMIDIMessage (message) {
-    var frequency = midiNoteToFrequency(message.data[1]);
-
-    if (message.data[0] === 144 && message.data[2] > 0) {
-        playNote(frequency);
-    }
-
-    if (message.data[0] === 128 || message.data[2] === 0) {
-        stopNote(frequency);
-    }
-}
-
-function midiNoteToFrequency (note) {
-    return Math.pow(2, ((note - 69) / 12)) * 440;
-}
-
-function playNote (frequency) {
-  midi_pitch = frequency;
-  console.log(frequency);
-}
-
-function stopNote (frequency) {
-  console.log("Note off");
-}
-
-//***********************************************
-
 var rings = [];
 var base_frequency, paused, speed;
 var max_size;
@@ -114,7 +25,8 @@ function setup(){
 }
 
 function draw(){
-  base_frequency = midi_pitch;
+
+  // base_frequency = midi_pitch;
   background(255);
   stroke(0);
 
@@ -123,15 +35,9 @@ function draw(){
     rings[i].display();
   }
 
-  speedRing.update();
-  speedRing.display();
-  speed = speedRing.getValue();
 
-  freqRing.update();
-  freqRing.display();
-  base_frequency = freqRing.getValue();
 
-  // drawGUI();
+  drawGUI();
   drawAlignmentCompass();
 }
 
@@ -386,15 +292,23 @@ function drawOscTypes(osc_type,ctrl_position){
 }
 
 function drawGUI(){
-  textAlign(LEFT);
-  translate(50,0);
-  text("Press 0 to return theta to 0",0,50);
-  text("Press Spacebar to play/pause",0,100);
-  text("While holding a control point, press 1,2,3 to cycle types",0,150);
-  text("Adjusting the radius of the circle changes volume.",0,200);
-  text("Speed: "+speed,0,250);
-  text("R1 Volume: "+rings[0].osc.output.gain.value.toFixed(2),0,300);
-  translate(-50,0);
+  // textAlign(LEFT);
+  // translate(50,0);
+  // text("Press 0 to return theta to 0",0,50);
+  // text("Press Spacebar to play/pause",0,100);
+  // text("While holding a control point, press 1,2,3 to cycle types",0,150);
+  // text("Adjusting the radius of the circle changes volume.",0,200);
+  // text("Speed: "+speed,0,250);
+  // text("R1 Volume: "+rings[0].osc.output.gain.value.toFixed(2),0,300);
+  // translate(-50,0);
+
+  speedRing.update();
+  speedRing.display();
+  speed = speedRing.getValue();
+
+  freqRing.update();
+  freqRing.display();
+  base_frequency = freqRing.getValue();
 }
 
 function drawAlignmentCompass(){
