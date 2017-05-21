@@ -12,7 +12,7 @@ function setup(){
   paused = true;
   speed  = 4;
   base_frequency = 200;
-  max_size = (height/2-15);
+  max_size = (height/2)-80;
 
   var number_of_rings = 6;
 
@@ -20,13 +20,15 @@ function setup(){
     rings.push(new Ring((max_size/number_of_rings)*(i+1)));
   }
 
-  speedRing = new GuiRing("Speed",70,70,50,20,20);
-  freqRing = new GuiRing("Freq",70,240,50,500,200);
+  speedRing = new GuiRing("Speed",width-80,height-80,50,20,20);
+  freqRing = new GuiRing("Freq",70,height - 80,50,500,200);
 }
 
 function draw(){
+  if(midi_isRunning && base_frequency != null){
+    base_frequency = midi_pitch;
+  }
 
-  // base_frequency = midi_pitch;
   background(255);
   stroke(0);
 
@@ -34,8 +36,6 @@ function draw(){
     rings[i].update();
     rings[i].display();
   }
-
-
 
   drawGUI();
   drawAlignmentCompass();
@@ -126,7 +126,7 @@ function GuiRing(name,x,y,radius,range,def){
   //circle
   this.radius = radius;
   this.theta  = -Math.PI/2;
-  this.offset = 0;
+  this.offset = 10;
 
   this.value = 0;
   this.range = range;
@@ -233,7 +233,7 @@ function keyTyped(){
       rings.map(function(ring){
         ring.theta  = 0;
         ring.driver = 0;
-        ring.offset = 0;
+        // ring.offset = 0;
       });
       break;
     case "1":
@@ -292,15 +292,26 @@ function drawOscTypes(osc_type,ctrl_position){
 }
 
 function drawGUI(){
-  // textAlign(LEFT);
-  // translate(50,0);
-  // text("Press 0 to return theta to 0",0,50);
-  // text("Press Spacebar to play/pause",0,100);
-  // text("While holding a control point, press 1,2,3 to cycle types",0,150);
-  // text("Adjusting the radius of the circle changes volume.",0,200);
-  // text("Speed: "+speed,0,250);
-  // text("R1 Volume: "+rings[0].osc.output.gain.value.toFixed(2),0,300);
-  // translate(-50,0);
+  textAlign(LEFT);
+  textSize(52);
+  fill(0);
+  text("ringchord",20,60);
+  textSize(12);
+  text("drag nodes to adjust overtone series.",20,100);
+  text("hold a node and click 1, 2, or 3 to change oscillator type.",20,120);
+  text("press space to sweep frequencies",20,140);
+
+  textAlign(RIGHT);
+  textSize(22);
+  fill(0);
+  if(midi_isRunning){
+    text("MIDI connected",width - 50, 60);
+  }else{
+    text("MIDI not connected",width - 50, 60);
+  }
+  textSize(12);
+
+
 
   speedRing.update();
   speedRing.display();
@@ -320,7 +331,7 @@ function drawAlignmentCompass(){
   text("Θ = 0", max_size+15,5);
 
   //Main Boundary
-  ellipse(0,0,(height/2-15));
+  ellipse(0,0,(max_size));
 
   //Alignment Lines
   line(0,0,0,max_size);
@@ -357,6 +368,3 @@ function windowResized() {
 function getDistance(x1,y1,x2,y2){
   return Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
 }
-//
-// document.addEventListener('touchstart', touchstartHandler, {passive: false });
-// document.addEventListener('touchmove', touchmoveHandler, {passive: false });
