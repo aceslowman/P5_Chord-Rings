@@ -233,7 +233,6 @@ function keyTyped(){
       rings.map(function(ring){
         ring.theta  = 0;
         ring.driver = 0;
-        // ring.offset = 0;
       });
       break;
     case "1":
@@ -241,7 +240,7 @@ function keyTyped(){
       rings.map(function(ring){
         if(ring.selected){
           ring.osc_type = osc_type;
-          this.osc.setType(ring.osc_type);
+          ring.osc.setType(ring.osc_type);
         }
       });
       break;
@@ -256,6 +255,15 @@ function keyTyped(){
       break;
     case "3":
       osc_type = "square";
+      rings.map(function(ring){
+        if(ring.selected){
+          ring.osc_type = osc_type;
+          ring.osc.setType(ring.osc_type);
+        }
+      });
+      break;
+    case "4":
+      osc_type = "sawtooth";
       rings.map(function(ring){
         if(ring.selected){
           ring.osc_type = osc_type;
@@ -286,6 +294,13 @@ function drawOscTypes(osc_type,ctrl_position){
     case "sine":
       ellipse(0,0,s_size)
       break;
+    case "sawtooth":
+      // strokeWeight(2);
+      line(-s_size,-s_size,-s_size,s_size);
+      line(-s_size,s_size,s_size,-s_size);
+      line(s_size,-s_size,s_size,s_size);
+      // strokeWeight(1);
+      break;
   }
   noFill();
   translate(-ctrl_position.x,-ctrl_position.y);
@@ -298,22 +313,24 @@ function drawGUI(){
   text("ringchord",20,60);
   textSize(12);
   text("drag nodes to adjust overtone series.",20,100);
-  text("hold a node and click 1, 2, or 3 to change oscillator type.",20,120);
-  text("press space to sweep frequencies",20,140);
+  text("press space to sweep frequencies",20,120);
+  text("hold a node and click 1, 2, 3, 4 to change oscillator type.",20,140);
+  text("(1: triangle) (2: sine) (3: square) (4: sawtooth)",20,160);
+
   textSize(10);
-  text("by Austin Slominski (aceslowman)",20,160);
+  text("by Austin Slominski (aceslowman)",20,180);
 
   textAlign(RIGHT);
   textSize(22);
   fill(0);
   if(midi_isRunning){
-    text("MIDI connected",width - 50, 60);
+    text("MIDI connected",width - 20, 60);
   }else{
-    text("MIDI not connected",width - 50, 60);
+    text("MIDI not connected",width - 20, 60);
+    textSize(12);
+    text("Press a MIDI key to connect",width - 20, 80);
   }
   textSize(12);
-
-
 
   speedRing.update();
   speedRing.display();

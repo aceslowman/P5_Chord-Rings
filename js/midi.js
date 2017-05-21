@@ -15,13 +15,6 @@ if (navigator.requestMIDIAccess) {
 }
 
 function success (midi) {
-    //temporary hack, default on chrome and ubuntu setup appears to be 2, so any more than that implies peripherals
-    if(midi.inputs.size > 2){
-      midi_isRunning = true;
-    }else{
-      midi_isRunning = false;
-    }
-
     var inputs = midi.inputs.values();
     // inputs is an Iterator
 
@@ -53,6 +46,8 @@ function midiNoteToFrequency (note) {
 
 function playNote (frequency) {
   midi_pitch = frequency;
+  midi_isRunning = true;
+
   console.log(frequency);
 }
 
