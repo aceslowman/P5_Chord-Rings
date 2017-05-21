@@ -300,6 +300,8 @@ function drawGUI(){
   text("drag nodes to adjust overtone series.",20,100);
   text("hold a node and click 1, 2, or 3 to change oscillator type.",20,120);
   text("press space to sweep frequencies",20,140);
+  textSize(10);
+  text("by Austin Slominski (aceslowman)",20,160);
 
   textAlign(RIGHT);
   textSize(22);
