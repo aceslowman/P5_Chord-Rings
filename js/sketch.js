@@ -63,7 +63,7 @@ function Ring(size){
   this.osc = new p5.Oscillator();
   this.osc.setType(this.osc_type);
   this.osc.freq(this.frequency);
-  this.osc.amp(0.2);
+this.osc.amp(0.1);
   this.osc.start();
 
   this.display = function(){
@@ -126,7 +126,7 @@ function GuiRing(name,x,y,radius,range,def){
   //circle
   this.radius = radius;
   this.theta  = -Math.PI/2;
-  this.offset = 10;
+  this.offset = 1;
 
   this.value = 0;
   this.range = range;
