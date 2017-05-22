@@ -63,8 +63,15 @@ function Ring(size){
   this.osc = new p5.Oscillator();
   this.osc.setType(this.osc_type);
   this.osc.freq(this.frequency);
-this.osc.amp(0.1);
+	this.osc.amp(0.1);
   this.osc.start();
+
+	this.noise_source = new p5.Noise('pink');
+	this.noise_env = new p5.Env();
+	this.noise_env.setADSR(0.001,0.01,0.2,0.01);
+	this.noise_env.setRange(0.3,0.0);
+	this.noise_source.amp(this.noise_env);
+	this.noise_source.start();
 
   this.display = function(){
     stroke(0);
@@ -113,7 +120,16 @@ this.osc.amp(0.1);
 
     this.osc.freq(this.frequency);
     this.osc.amp(this.radius/(width/2));
+
+		if(this.theta > 0 && this.theta < 0.1){
+			console.log('trigger?');
+			this.triggerPerc();
+		}
   }
+
+	this.triggerPerc = function(){
+		this.noise_env.play();
+	}
 }
 
 function GuiRing(name,x,y,radius,range,def){
